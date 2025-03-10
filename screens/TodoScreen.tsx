@@ -3,16 +3,17 @@ import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity } from "r
 import { RectButton, Swipeable } from "react-native-gesture-handler";
 import Icon from "react-native-vector-icons/Ionicons";
 
-export default function TodoScreen({ route }) {
+export default function TodoScreen({ route } : { route: any }) {
   const { list, updateListTasks } = route.params;
   const [tasks, setTasks] = useState(list.tasks);
+  const [title, setTitle] = useState(list.title); // 🔥 Ajout du state pour le titre
   const [newTask, setNewTask] = useState("");
-  const [editingTaskId, setEditingTaskId] = useState(null); // Gestion de l'édition des tâches
+  const [editingTaskId, setEditingTaskId] = useState(null);
   const [editedTaskText, setEditedTaskText] = useState("");
 
   // Sauvegarde automatique des tâches lorsqu'elles changent
   useEffect(() => {
-    updateListTasks(list.id, tasks);
+    updateListTasks(list.id, tasks, title);
   }, [tasks]);
 
   // Ajouter une tâche
@@ -54,14 +55,15 @@ export default function TodoScreen({ route }) {
 
   return (
     <View style={styles.container}>
+      {/* 🔥 Input pour modifier le titre de la liste */}
       <TextInput
         style={styles.title}
-        value={list.title}
-        onChangeText={(newTitle) => updateListTasks(list.id, [...tasks])}
+        value={title}
+        onChangeText={setTitle}
+        onBlur={() => updateListTasks(list.id, tasks, title)} // Sauvegarde quand on quitte le champ
         placeholder="Renommer la liste"
         placeholderTextColor="#888"
       />
-
 
       <FlatList
         data={tasks}
@@ -75,7 +77,11 @@ export default function TodoScreen({ route }) {
             </RectButton>
           )}>
             
-            <TouchableOpacity style={styles.task} onPress={() => toggleTask(item.id)} onLongPress={() => startEditing(item.id, item.text)}>
+            <TouchableOpacity 
+              style={styles.task} 
+              onPress={() => toggleTask(item.id)} 
+              onLongPress={() => startEditing(item.id, item.text)}
+            >
               <Icon name={item.completed ? "checkbox-outline" : "square-outline"} size={24} color="white" />
               {editingTaskId === item.id ? (
                 <TextInput
@@ -86,7 +92,9 @@ export default function TodoScreen({ route }) {
                   autoFocus
                 />
               ) : (
-                <Text style={[styles.taskText, item.completed && styles.completedText]}>{item.text}</Text>
+                <Text style={[styles.taskText, item.completed && styles.completedText]}>
+                  {item.text}
+                </Text>
               )}
             </TouchableOpacity>
           </Swipeable>
@@ -94,7 +102,7 @@ export default function TodoScreen({ route }) {
         keyExtractor={(item) => item.id}
       />
 
-      {/* Barre d'ajout de tâche avec bouton "+" */}
+      {/* 🔥 Barre d'ajout de tâche avec bouton "+" */}
       <View style={styles.addTaskContainer}>
         <TextInput
           style={styles.input}
@@ -133,7 +141,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#1E1E1E",
-    paddingVertical: 15, // Ajout de padding vertical pour éviter le texte collé
+    paddingVertical: 15,
     paddingHorizontal: 10,
     borderRadius: 10,
     marginBottom: 10,
@@ -144,7 +152,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     overflow: "hidden",
     maxWidth: "80%",
-    paddingLeft: 10, // Ajout d’un padding pour espacer le texte de l’icône
+    paddingLeft: 10,
   },
   taskTextInput: {
     color: "white",
@@ -183,3 +191,4 @@ const styles = StyleSheet.create({
     width: 80,
   },
 });
+
